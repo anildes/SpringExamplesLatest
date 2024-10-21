@@ -9,9 +9,9 @@ RUN apk update && \
 ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
 ENV PATH="$JAVA_HOME/bin:${PATH}"
 
-# Copy the JAR file to the container
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
+# Copy the JAR file (Maven output path)
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} /app.jar
 
 # Expose the application port
 EXPOSE 8080
