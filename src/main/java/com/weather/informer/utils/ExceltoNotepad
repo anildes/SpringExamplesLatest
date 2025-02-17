@@ -1,0 +1,65 @@
+import org.apache.poi.ss.usermodel.*;
+import java.io.*;
+
+public class ExcelToNotepad {
+
+    public static void copyExcelToNotepadWithTableFormat(String excelFilePath, String outputFilePath) {
+        try (FileInputStream fis = new FileInputStream(excelFilePath);
+             Workbook workbook = WorkbookFactory.create(fis);
+             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+
+            // Get the first sheet
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Calculate column widths
+            int[] colWidths = new int[sheet.getRow(0).getPhysicalNumberOfCells()];
+
+            for (Row row : sheet) {
+                for (int col = 0; col < row.getLastCellNum(); col++) {
+                    Cell cell = row.getCell(col, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    int cellLength = cell.toString().length();
+                    if (cellLength > colWidths[col]) {
+                        colWidths[col] = cellLength;
+                    }
+                }
+            }
+
+            // Create horizontal line
+            StringBuilder horizontalLine = new StringBuilder("+");
+            for (int width : colWidths) {
+                horizontalLine.append("-".repeat(width + 2)).append("+");
+            }
+
+            // Write header line
+            writer.write(horizontalLine.toString());
+            writer.newLine();
+
+            // Write each row
+            for (Row row : sheet) {
+                StringBuilder rowContent = new StringBuilder("|");
+                for (int col = 0; col < row.getLastCellNum(); col++) {
+                    Cell cell = row.getCell(col, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    String cellValue = cell.toString();
+                    rowContent.append(" ").append(cellValue);
+                    rowContent.append(" ".repeat(colWidths[col] - cellValue.length()));
+                    rowContent.append(" |");
+                }
+                writer.write(rowContent.toString());
+                writer.newLine();
+                writer.write(horizontalLine.toString());
+                writer.newLine();
+            }
+
+            System.out.println("Table copied to '" + outputFilePath + "' successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        String excelFilePath = "your_excel_file.xlsx"; // Replace with your file path
+        String outputFilePath = "output_table.txt";    // Replace with desired output file name
+
+        copyExcelToNotepadWithTableFormat(excelFilePath, outputFilePath);
+    }
+}
