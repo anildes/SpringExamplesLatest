@@ -3,6 +3,19 @@ import java.io.*;
 
 public class ExcelToNotepad {
 
+
+/*<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi</artifactId>
+    <version>5.2.3</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.2.3</version>
+</dependency>*/
+
+
     public static void copyExcelToNotepadWithTableFormat(String excelFilePath, String outputFilePath) {
         try (FileInputStream fis = new FileInputStream(excelFilePath);
              Workbook workbook = WorkbookFactory.create(fis);
