@@ -19,15 +19,17 @@ public class ExcelToNotepad {
 
             Sheet sheet = workbook.getSheetAt(0);
             List<Integer> columnWidths = new ArrayList<>();
-
-            // Calculate max column widths
             List<List<String[]>> allRows = new ArrayList<>();
+
+            // First: Calculate max column widths & prepare all rows data
             for (Row row : sheet) {
                 List<String[]> rowData = new ArrayList<>();
                 for (int col = 0; col < row.getLastCellNum(); col++) {
                     Cell cell = row.getCell(col);
                     String cellValue = (cell == null) ? "" : cell.toString();
-                    String[] lines = cellValue.split("\\R|(?<=\\.)\\s*"); // Split on line breaks OR periods followed by space
+                    // Split on line breaks OR period followed by space
+                    String[] lines = cellValue.split("\\R|(?<=\\.)\\s+");
+
                     rowData.add(lines);
 
                     int maxLen = Arrays.stream(lines).mapToInt(String::length).max().orElse(0);
@@ -40,13 +42,13 @@ public class ExcelToNotepad {
                 allRows.add(rowData);
             }
 
-            // Ensure minimum column width
+            // Set minimum column width
             final int MIN_COL_WIDTH = 20;
             for (int i = 0; i < columnWidths.size(); i++) {
                 columnWidths.set(i, Math.max(columnWidths.get(i), MIN_COL_WIDTH));
             }
 
-            // Write each row
+            // Now print each row
             for (List<String[]> rowData : allRows) {
                 int maxLines = rowData.stream().mapToInt(arr -> arr.length).max().orElse(1);
 
@@ -56,15 +58,14 @@ public class ExcelToNotepad {
                         String cellLine = (lineIdx < cellLines.length) ? cellLines[lineIdx].trim() : "";
                         int colWidth = columnWidths.get(col);
 
-                        String formattedValue = String.format("%-" + (colWidth + 2) + "s", 
-                                                              (lineIdx == 0 || col == rowData.size()-1) ? cellLine : "");
+                        String formattedValue = String.format("%-" + (colWidth + 2) + "s", cellLine);
                         writer.write("|" + formattedValue);
                     }
                     writer.write("|");
                     writer.newLine();
                 }
 
-                // Write row separator
+                // Row separator
                 int totalWidth = columnWidths.stream().mapToInt(Integer::intValue).sum() + rowData.size() * 3 + 1;
                 writer.write(repeatChar('-', totalWidth));
                 writer.newLine();
