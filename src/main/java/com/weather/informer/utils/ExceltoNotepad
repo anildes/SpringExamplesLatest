@@ -5,59 +5,14 @@ import java.util.*;
 
 public class ExcelToNotepad {
 
-
-  /*<dependency>
-    <groupId>org.apache.poi</groupId>
-    <artifactId>poi</artifactId>
-    <version>5.2.3</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.poi</groupId>
-    <artifactId>poi-ooxml</artifactId>
-    <version>5.2.3</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-api</artifactId>
-    <version>2.8.2</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.8.2</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.poi</groupId>
-    <artifactId>poi</artifactId>
-    <version>3.17</version> <!-- Use POI 3.17 for Java 8 -->
-</dependency>
-<dependency>
-    <groupId>org.apache.poi</groupId>
-    <artifactId>poi-ooxml</artifactId>
-    <version>3.17</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-compress</artifactId>
-    <version>1.18</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.xmlbeans</groupId>
-    <artifactId>xmlbeans</artifactId>
-    <version>2.6.0</version>
-</dependency>*/
-
-
-
-    // Utility method to repeat a character n times
+    // Utility method to repeat a character
     public static String repeatChar(char ch, int times) {
         if (times <= 0) return "";
         return String.join("", Collections.nCopies(times, String.valueOf(ch)));
     }
 
-    // Method to copy an Excel table to a notepad file with formatted columns and rows
+    // Method to copy Excel to Notepad, splitting multi-line cells
     public static void copyExcelToNotepadWithTableFormat(String excelFilePath, String outputFilePath) throws IOException {
-        // Load the Excel file
         try (FileInputStream fis = new FileInputStream(excelFilePath);
              Workbook workbook = new XSSFWorkbook(fis);
              BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
@@ -65,58 +20,65 @@ public class ExcelToNotepad {
             Sheet sheet = workbook.getSheetAt(0);
             List<Integer> columnWidths = new ArrayList<>();
 
-            // Calculate the maximum width of each column
+            // Calculate max column widths
+            List<List<String[]>> allRows = new ArrayList<>();
             for (Row row : sheet) {
+                List<String[]> rowData = new ArrayList<>();
                 for (int col = 0; col < row.getLastCellNum(); col++) {
                     Cell cell = row.getCell(col);
                     String cellValue = (cell == null) ? "" : cell.toString();
-                    int cellLength = cellValue.length();
+                    String[] lines = cellValue.split("\\R|(?<=\\.)\\s*"); // Split on line breaks OR periods followed by space
+                    rowData.add(lines);
+
+                    int maxLen = Arrays.stream(lines).mapToInt(String::length).max().orElse(0);
                     if (columnWidths.size() <= col) {
-                        columnWidths.add(cellLength);
+                        columnWidths.add(maxLen);
                     } else {
-                        columnWidths.set(col, Math.max(columnWidths.get(col), cellLength));
+                        columnWidths.set(col, Math.max(columnWidths.get(col), maxLen));
                     }
                 }
+                allRows.add(rowData);
             }
 
-            // Define a minimum width for columns to ensure alignment is not too tight
+            // Ensure minimum column width
             final int MIN_COL_WIDTH = 20;
+            for (int i = 0; i < columnWidths.size(); i++) {
+                columnWidths.set(i, Math.max(columnWidths.get(i), MIN_COL_WIDTH));
+            }
 
-            // Write the table with a border
-            for (Row row : sheet) {
-                for (int col = 0; col < row.getLastCellNum(); col++) {
-                    Cell cell = row.getCell(col);
-                    String cellValue = (cell == null) ? "" : cell.toString();
+            // Write each row
+            for (List<String[]> rowData : allRows) {
+                int maxLines = rowData.stream().mapToInt(arr -> arr.length).max().orElse(1);
 
-                    // Format the value to align with the column width (max column width or minimum width)
-                    int colWidth = Math.max(columnWidths.get(col), MIN_COL_WIDTH);
-                    String formattedValue = String.format("%-" + (colWidth + 2) + "s", cellValue);
+                for (int lineIdx = 0; lineIdx < maxLines; lineIdx++) {
+                    for (int col = 0; col < rowData.size(); col++) {
+                        String[] cellLines = rowData.get(col);
+                        String cellLine = (lineIdx < cellLines.length) ? cellLines[lineIdx].trim() : "";
+                        int colWidth = columnWidths.get(col);
 
-                    // Print the cell value with a separator (pipe)
-                    writer.write("|" + formattedValue);
+                        String formattedValue = String.format("%-" + (colWidth + 2) + "s", 
+                                                              (lineIdx == 0 || col == rowData.size()-1) ? cellLine : "");
+                        writer.write("|" + formattedValue);
+                    }
+                    writer.write("|");
+                    writer.newLine();
                 }
 
-                // End of the row
-                writer.write("|");
-                writer.newLine();
-
-                // Write row separator (like a table border)
-                writer.write(repeatChar('-', columnWidths.stream().mapToInt(Integer::intValue).sum() + columnWidths.size() * 3 + 1));
+                // Write row separator
+                int totalWidth = columnWidths.stream().mapToInt(Integer::intValue).sum() + rowData.size() * 3 + 1;
+                writer.write(repeatChar('-', totalWidth));
                 writer.newLine();
             }
 
-            System.out.println("Data copied to Notepad with table format successfully.");
+            System.out.println("Formatted table written to Notepad successfully.");
         }
     }
 
-    // Main method to run the program
     public static void main(String[] args) {
-        // Define the paths for your Excel file and the output text file
-        String excelFilePath = "C:/Users/8J5596897/Documents/Daily Cash Defects Report_12.xlsx"; // Example path
-        String outputFilePath = "C:/Users/8J5596897/Documents/output_table.txt";              // Example output path
+        String excelFilePath = "C:/Users/8J5596897/Documents/Daily Cash Defects Report_12.xlsx"; 
+        String outputFilePath = "C:/Users/8J5596897/Documents/output_table.txt";
 
         try {
-            // Call the method to copy the table
             copyExcelToNotepadWithTableFormat(excelFilePath, outputFilePath);
         } catch (IOException e) {
             e.printStackTrace();
