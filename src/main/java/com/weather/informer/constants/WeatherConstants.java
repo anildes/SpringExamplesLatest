@@ -132,3 +132,54 @@ public interface WeatherConstants {
 	String OPEN_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?APPID=7bf825562208478a0ea322b942c87030&q=";
 
 }
+
+/*
+{
+  "channelInfo": "MLDD",
+  "accountDetails": {
+    "accountNumber": "42840MY",
+    "accountType": "CMA_ACCT",
+    "asStepAccount": false,
+    "asEdgeAccount": true,
+    "imTrait": "LMA_LOAN",
+    "isRetirement": false,
+    "ccyCode": "USD",
+    "accountFANumber": "*",
+    "subAccounts": [
+      {
+        "subAccountNumber": "42840MY-S1",
+        "subAccountType": "CMA_SUB_ACCT",
+        "purpose": "Margin",
+        "ccyCode": "USD"
+      },
+      {
+        "subAccountNumber": "42840MY-S2",
+        "subAccountType": "CMA_SUB_ACCT",
+        "purpose": "Joint Account",
+        "ccyCode": "USD"
+      }
+    ],
+    "sdaActDetails": {
+      "m12PLArmNumber": "*",
+      "isTotalFundOption": false,
+      "participateNetireTrait": "*",
+      "hasWfsAcct": false,
+      "hasMlusAcct": false,
+      "recordKeeperId": "*",
+      "isLoadNoLoad": false
+    }
+  },
+  "order": {
+    "productInfo": "EQTY",
+    "isMarketOrder": false,
+    "clientOrderId": "*",
+    "isOpenAmend": false,
+    "orderSide": "Buy",
+    "openClose": "Open",
+    "securityNumber": "TIPW",
+    "orderPrincipalAmount": 600,
+    "orderQuantity": 60,
+    "securityPriceOnOrder": 10.00
+  }
+}/*
+
